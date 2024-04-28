@@ -4,6 +4,7 @@ const prisma = new PrismaClient();
 
 const createUser = async (req, res) => {
   const { name, lastname, email } = req.body;
+  //verifica que no lleguen valores vacios
   if (Object.values(req.params).includes(''))
     return res.status(404).json({ msg: 'all files are required' });
   try {
@@ -36,6 +37,7 @@ const listAllUsers = async (req, res) => {
 };
 
 const userById = async (req, res) => {
+  //verifica que el id sea valido
   if (isNaN(parseInt(req.params.id)))
     return res.status(400).send({ msg: 'The id provided is wrong' });
   try {
@@ -44,13 +46,13 @@ const userById = async (req, res) => {
         id: +req.params.id,
       },
     });
-
+    //verifica que el id pertenezca a un usuario
     if (!userFind)
       return res
         .status(404)
         .send({ msg: 'The id provided doesnt belong any user' });
-
-    const user = await prisma.user.findfirst({
+    //Realiza la consulta
+    const user = await prisma.user.findFirst({
       where: {
         id: +req.params.id,
       },
@@ -109,6 +111,7 @@ const updateUser = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
+  //Comprueba que el id sea correcto
   if (isNaN(parseInt(req.params.id)))
     return res.status(400).send({ msg: 'The id provided is wrong' });
 

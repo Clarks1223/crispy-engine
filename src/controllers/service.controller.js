@@ -1,33 +1,67 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = PrismaClient;
 
 const creteService = async (req, res) => {
   const { name, description, price, status } = req.params;
-  const newService = await prisma.service.create({
-    data: {
-      name,
-      description,
-      price: +price,
-      status: Boolean(status),
-    },
-  });
-  req.status(200).json({ res: 'New service created', data: newService });
+  //verifica que los datos esten completos para generar el perfil
+  if (Object.values(req.params).includes(''))
+    return res.status(500).json({ msg: 'You must complete all the fields' });
+  try {
+    //ingresa el nuevo usuario
+    const newService = await prisma.service.create({
+      data: {
+        name,
+        description,
+        price: +price,
+        status: Boolean(status),
+      },
+    });
+    req.status(200).json({ res: 'New service created', data: newService });
+  } catch (error) {
+    res.status(500).send({
+      msg: 'Something goes wrong, we coulnd create a profile',
+      error: error.message,
+    });
+  }
 };
 
 const listAllServices = async (req, res) => {
-  const allServices = await prisma.service.findMany({
-    where: { status: true },
-  });
-  res.status(200).json({ res: 'Services registred', data: allServices });
+  try {
+    const allServices = await prisma.service.findMany({
+      where: { status: true },
+    });
+    res.status(200).json({ res: 'Services registred', data: allServices });
+  } catch (error) {
+    res.status(500).send({
+      msg: 'Something goes wrong. We couldnt find the list of services',
+      error: error.message,
+    });
+  }
 };
 const ServiceById = async (req, res) => {
-  const oneService = await prisma.service.findFirst({
-    where: {
-      id: +req.params.id,
-    },
-  });
-  req.status(200).json({ res: 'Details of service', data: oneService });
+  //Comprueba que el id de los servicios sean correctos
+  if (isNaN(parseInt(req.params.id)))
+    return res.status(500).send({ msg: 'The ID provided is wrong' });
+  try {
+    //comprueba que el id tenga un servicio asignado
+    const serviceFind = await prisma.service.findUnique({
+      where: {
+        id: +req.params.id,
+      },
+    });
+    if (!serviceFind)
+      return res.status(500).send({ msg: 'We couldnt find the service' });
+    //realiza la consulta
+    const oneService = await prisma.service.findFirst({
+      where: {
+        id: +req.params.id,
+      },
+    });
+    req.status(200).json({ res: 'Details of service', data: oneService });
+  } catch (error) {
+    res.status(500).send({ msg: 'Something goes wrong', error: error.message });
+  }
 };
 const updateService = async (req, res) => {
   const { name, description, price, status } = req.params;
