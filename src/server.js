@@ -6,10 +6,13 @@ import dotenv from 'dotenv';
 import routerUser from './routers/user.routes.js';
 import routerProfile from './routers/profile.routes.js';
 import routerServices from './routers/services.routes.js';
+import routerUserProfile from './routers/userProfile.routes.js';
+
 //crea una instancia de express - Inicializaciones
 const app = express();
 dotenv.config();
 console.log(process.env.PORT);
+
 app.set('port', process.env.PORT || 3000);
 //Middlewares
 app.use(express.json());
@@ -21,6 +24,7 @@ app.get('/', (req, res) => {
 app.use('/api', routerUser);
 app.use('/api', routerProfile);
 app.use('/api', routerServices);
+app.use('/api', routerUserProfile);
 //ruta no encontrada
 app.use((req, res) => {
   res.status(404).send('EndPoint no encontrado');

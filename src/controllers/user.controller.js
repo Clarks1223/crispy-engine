@@ -3,16 +3,44 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const createUser = async (req, res) => {
-  const { name, lastname, email } = req.body;
+  console.log('se accede a la ruta ');
+  const { name, lastname, email, cellphone } = req.body;
   //verifica que no lleguen valores vacios
   if (Object.values(req.params).includes(''))
     return res.status(404).json({ msg: 'all files are required' });
+  console.log('el email que llega: ', req.body.email);
+
   try {
+    const verifiEmail = await prisma.user.findFirst({
+      where: {
+        email: email,
+      },
+    });
+
+    if (verifiEmail)
+      return res
+        .status(404)
+        .send({ msg: 'The email provided is alredy registred' });
+
     const newUser = await prisma.user.create({
       data: {
         name,
         lastname,
         email,
+        cellphone,
+        profile: {
+          create: {
+            name: 'DIRECTOR',
+          },
+        },
+        services: {
+          create: {
+            name: 'Landing Page',
+            decription: 'For the sale of technologies products',
+            price: 500,
+            status: true,
+          },
+        },
       },
     });
     res.status(200).json({ res: 'New user created', data: newUser });
@@ -111,6 +139,7 @@ const updateUser = async (req, res) => {
 };
 
 const deleteUser = async (req, res) => {
+  const { id } = req.params;
   //Comprueba que el id sea correcto
   if (isNaN(parseInt(req.params.id)))
     return res.status(400).send({ msg: 'The id provided is wrong' });
@@ -128,12 +157,13 @@ const deleteUser = async (req, res) => {
         .send({ msg: 'The ID provided doesnt belong to any user' });
     //elimina el usuario
     const user = await prisma.user.delete({
-      where: { id: +req.params.id },
+      where: { id: parseInt(req.params.id) },
     });
     res.status(200).json({ res: 'User deleted', data: user });
   } catch (error) {
     res.status(500).json({
       res: 'There was a problems while we try to delete these file',
+      error: error.message,
     });
   }
 };

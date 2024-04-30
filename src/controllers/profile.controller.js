@@ -2,13 +2,18 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const createProfile = async (req, res) => {
-  const { name } = req.body;
+  const { name, userId } = req.body;
   //comprueba que todos se ingresen
   if (Object.values(req.params).includes(''))
     return res.status(404).res({ msg: 'All data are required' });
   try {
     const newProfile = await prisma.profile.create({
       data: { name },
+      user: {
+        connect: {
+          id: +userId,
+        },
+      },
     });
     res.status(200).json({ res: 'New profile created', data: newProfile });
   } catch (error) {
